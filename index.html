@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SULLSTORE</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(180deg,#0f0f0f,#1a032b);
+  color: white;
+}
+header {
+  background: #6d28d9;
+  padding: 5px 15px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+.logo { width: 40px; margin-right: 10px; }
+.store-title { 
+  font-weight: bold; 
+  font-size: 20px;
+  margin: -6px;
+}
+
+.search {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: solid white;
+  width: 120px;
+}
+
+.hero { position: relative; margin: 15px; border-radius: 15px; overflow: hidden; }
+.hero-img { width: 100%; height: 140px; object-fit: cover; display: block; animation: zoomIn 1s ease; }
+@keyframes zoomIn { from {transform: scale(1.2); opacity:0;} to {transform: scale(1); opacity:1;} }
+.container { padding: 15px; }
+.title { font-size: 20px; margin-bottom: 10px; }
+.recommended { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+.rec {
+  height: 90px;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+.rec span {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  background: rgba(0,0,0,0.6);
+  padding: 5px;
+  font-weight: bold;
+}
+/* Container tab yang bisa digeser + indikator */
+.tabs-wrapper {
+position: relative;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  padding: 0 15px; /* Tambahin baris ini */
+  box-sizing: border-box; /* Tambahin juga biar padding gak bikin lebarnya lebih besar */
+}
+.tabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto; /* Bisa digeser ke kanan/kiri */
+  padding-bottom: 8px; /* Jarak buat indikator */
+  scroll-behavior: smooth; /* Animasi geser halus */
+  -ms-overflow-style: none; /* Hilangin scrollbar di IE/Edge */
+  scrollbar-width: none; /* Hilangin scrollbar di Firefox */
+}
+/* Hilangin scrollbar di Chrome/Safari */
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+.tab {
+flex: 0 0 auto;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #333;
+  color: white;
+  white-space: nowrap;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  max-width: 124px; /* Tambahin ini */
+  overflow: hidden; /* Tambahin ini */
+  text-overflow: ellipsis; /* Tambahin ini */
+}
+.tab.active {
+  background: #7c3aed; /* Hapus background saat aktif */
+  color: #ffffff; /* Warna tulisan sama dengan indikator */
+  font-weight: 600;
+}
+/* Garis indikator bawah kayak PointGo */
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background: #7c3aed; /* Bisa ganti jadi hijau (#32cd32) kalo mau sama PointGo */
+  border-radius: 3px;
+  transition: all 0.3s ease; /* Animasi geser indikator */
+}
+
+.game-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-height: 470px; /* Sesuaikan untuk 3 baris (setiap baris ~150px, jadi 3 baris + jarak = ~480px) */
+  overflow: hidden;
+  transition: 0.3s;
+  margin-bottom: 20px; /* Jarak antara daftar game dan tombol */
+}
+
+.game-list.show {
+  max-height: 1200px;
+}
+
+.game-image-card {
+  background: transparent;
+  padding: 0;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  height: 150px; /* Hapus tinggi tetap */
+}
+.game-image-card img {
+  width: 100%;
+  height: 150px; /* Atur tinggi gambar kecil lagi */
+  object-fit: cover;
+  border-radius: 8px;
+}
+.game-image-card span {
+  display: block;
+  font-size: 11px;
+  margin-top: 3px;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* STYLE CARD PESANAN & RIWAYAT - SAMA KAYA TOMBOL LIHAT SELENGKAPNYA */
+.order-history-card {
+  background: #2e1065;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #fcd34d;
+  width: 100%; /* Panjang penuh kayak tombol lihat selengkapnya */
+  max-width: 95%; /* Jarak sisi kiri-kanan sama aja */
+  margin: 10px auto 0 auto; /* Posisinya di tengah, ada jarak atasnya */
+  box-sizing: border-box;
+  font-size: 15px;
+  font-weight: bold;
+  display: block;
+}
+/* STYLE UNTUK MEMBATASI LEBAR HALAMAN PRODUK */
+#produk-container {
+  max-width: 95%; /* Sama kayak tombol di halaman awal */
+  margin: 0 auto; /* Posisinya di tengah */
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+
+/* MODAL BISA SCROLL KE SELURUHAN - MODIFIKASI DISINI */
+#orderHistoryModal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  overflow-y: auto; /* SCROLL UTAMA MODAL */
+}
+
+#modalContent {
+  background-color: #1a032b;
+  margin: 5% auto;
+  padding: 20px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 500px;
+  box-sizing: border-box;
+}
+
+/* BAGIAN HISTORY SENDIRI BISA SCROLL - MODIFIKASI TINGGI */
+#historyContainer {
+  max-height: 400px; /* DIBAIKIN LEBIH PANJANG */
+  overflow-y: auto; /* SCROLL KHUSUS HISTORY */
+  padding-right: 5px;
+  margin-bottom: 10px;
+}
+
+/* BUAT SCROLLBARNYA LEBIH KEREN */
+#historyContainer::-webkit-scrollbar {
+  width: 5px;
+}
+
+#historyContainer::-webkit-scrollbar-track {
+  background: #2e1065;
+  border-radius: 5px;
+}
+
+#historyContainer::-webkit-scrollbar-thumb {
+  background: #7c3aed;
+  border-radius: 5px;
+}
+
+  
+.close-modal {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.close-modal:hover,
+.close-modal:focus {
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+}
+/* SAMPAI SINI STYLE BARU, YANG LAIN TETAP SAMA */
+#listProduk { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 10px; }
+#specialItems { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 15px; }
+.card {
+  background: #2e1065;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.4s ease forwards;
+}
+.special-card {
+  background: #2e1065;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.4s ease forwards;
+}
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0);} }
+.selected { border: 2px solid yellow; box-shadow: 0 0 10px rgba(255,235,59,0.5); }
+
+/* MODIFIKASI: STYLE STEP FORM */
+.step-section {
+  background-color: #222;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+.step-header {
+  background-color: #7c3aed;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 16px;
+}
+.step-number {
+  background-color: white;
+  color: #7c3aed;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.step-content {
+  padding: 15px;
+}
+.step-note {
+  font-size: 13px;
+  color: #ccc;
+  margin-top: 5px;
+}
+#gamepassNote { text-align:center; margin-bottom:5px; font-size:14px; color:yellow; display:none; }
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #fcd34d;
+}
+/* TAMBAHAN: GARIS PEMISAH */
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: #4b5563;
+  margin: 20px 0;
+}
+
+input, select { 
+  width: 100%; 
+  padding: 10px; 
+  margin-top: 10px; 
+  border-radius: 8px; 
+  border: none;
+  background-color: #333;
+  color: white;
+}
+/* TAMBAHAN: STYLE VALIDASI */
+.input-error {
+  border-bottom: 2px solid #dc2626 !important;
+}
+select.input-error {
+  border-bottom: 2px solid #dc2626 !important;
+}
+.error-text {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+  height: 15px;
+}
+/* TAMBAHAN: STYLE TOTAL HARGA */
+#totalSection {
+  background: #4c1d95;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+button { 
+  background: #dc2626; 
+  color: white; 
+  padding: 12px; 
+  border: none; 
+  border-radius: 10px; 
+  margin-top: 10px; 
+  width: 100%;
+  font-weight: bold;
+}
+.back-btn { background-color: #6d28d9; }
+.hidden {display:none;}
+#qrisImg { display:none; width:200px; margin:15px auto; border-radius:10px; }
+.fade-in { opacity: 0; transform: translateY(20px); animation: fadeUp 0.8s ease forwards; }
+
+/* TAMBAHAN: STYLE NOTIFIKASI DAN HISTORY */
+#orderNotification {
+  position:fixed; 
+  top:20px; 
+  right:20px; 
+  background:#16a34a; 
+  color:white; 
+  padding:15px 20px; 
+  border-radius:10px; 
+  box-shadow:0 0 10px rgba(0,0,0,0.5); 
+  display:none; 
+  z-index:999;
+}
+#statusUpdateMessage {
+  text-align:center; 
+  margin-top:10px; 
+  color:#4ade80; 
+  display:none;
+}
+/* NOTIFIKASI TOKO TUTUP */
+#closedNotification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #dc2626;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  display: none;
+  z-index: 9999;
+  text-align: center;
+  font-weight: bold;
+}
+/* STYLE UNTUK HEADER ACTIONS (SEARCH + MENU) */
+.header-actions {
+  position: absolute;
+  right: 10px;
+  top: 40%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* TOMBOL MENU GARIS 3 */
+.menu-btn {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* STYLE TOMBOL LIHAT SELENGKAPNYA */
+#lihatBtn {
+  background-color: #6d28d9;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  width: 95%;
+  margin: 25px auto 10px auto; /* Tambah nilai margin-top jadi lebih besar */
+  display: block;
+  clear: both;
+  position: relative;
+}
+#lihatBtn:hover {
+  background-color: #7c3aed; /* Warna ungu lebih muda saat di-hover */
+  transition: background-color 0.2s ease;
+}
+
+/* MENU SAMPING (SIDEBAR) */
+.side-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100%;
+  background: linear-gradient(180deg, #6d28d9, #2e1065);
+  z-index: 999999;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  padding: 20px 15px;
+  box-sizing: border-box;
+}
+
+.side-menu.active {
+  transform: translateX(0);
+}
+
+.side-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+
+.side-menu-header h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.close-side-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.side-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.side-menu-item:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.side-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 999998;
+  display: none;
+}
+
+.side-menu-overlay.active {
+  display: block;
+}
+/* TOMBOL PENCARIAN DI HEADER */
+.search-btn {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 22px;
+}
+
+/* KOLOM PENCARIAN YANG MUNCUL KE BAWAH - PERBAIKI TAMPILAN */
+.search-bar-container {
+  background-color: #6d28d9; /* Warna sama kayak header biar nyambung */
+  padding: 8px 15px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0; /* Hapus jarak yang tidak perlu */
+  position: relative; /* Ganti dari sticky jadi normal */
+  z-index: 999;
+  transition: all 0.2s ease;
+}
+
+#expandedSearchInput {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 25px; /* Buat sudut melengkung kayak foto referensi */
+  border: none; /* Hapus border agar lebih bersih */
+  background-color: #1a032b; /* Warna dalam kolom pencarian */
+  color: white;
+  margin-top: 0;
+  font-size: 14px;
+}
+
+.close-search-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 10px;
+  position: absolute;
+  right: 20px; /* Taruh tombol tutup di sisi kanan kolom */
+}
+
+/* STYLE SLIDER BANNER */
+.banner-slider {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  overflow: hidden;
+  border-radius: 15px;
+}
+
+.banner-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.banner-slide.active {
+  opacity: 1;
+  animation: zoomIn 1s ease;
+}
+
+/* Indikator Titik Banner */
+.banner-indicators {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.indicator.active {
+  background-color: white;
+  width: 15px;
+  border-radius: 4px;
+}
+
+/* Style gambar ikon pencarian */
+.search-icon-img {
+  width: 35px; /* Sesuaikan ukuran aja ya, bisa 18px atau 22px */
+  height: 35px;
+  object-fit: contain; /* Biar gambarnya tidak terpotong */
+}
+
+/* Kalau mau hilangin border atau sesuaikan tombolnya bisa tambahin ini */
+.search-btn {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Hapus line-height kalau ada ya biar gambarnya pas di tengah */
+  line-height: normal;
+}
+
+
+
+
+
+
+
+
+</style>
+</head>
+<body>
+
+<header>
+   <img src="logostore.png" class="logo">
+   <div class="store-title">SULLSTORE</div>
+   <div class="header-actions">
+     <!-- TOMBOL PENCARIAN YANG AKAN BERUBAH JADI X -->
+     <button class="search-btn" id="searchToggleBtn" onclick="toggleSearchBar()">
+  <img src="search2.png" alt="Cari" class="search-icon-img">
+     </button>
+
+     <button class="menu-btn" onclick="toggleSideMenu()">☰</button>
+   </div>
+ </header>
+ <!-- KOLOM PENCARIAN - HAPUS TOMBOL X YANG ADA DI SINI -->
+ <div class="search-bar-container" id="searchBarContainer" style="display: none;">
+   <input type="text" placeholder="Cari Game atau Voucher" id="expandedSearchInput" oninput="searchGame()">
+ </div>
+ <!-- MENU SAMPING -->
+<div class="side-menu" id="sideMenu">
+  <div class="side-menu-header">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <h3>SULLSTORE</h3>
+    </div>
+    <button class="close-side-btn" onclick="toggleSideMenu()">&times;</button>
+  </div>
+  
+  <!-- MENU UTAMA -->
+  <div class="side-menu-item" onclick="openTopupFromMenu()">
+    <span>💎</span>
+    <span>Topup Game</span>
+  </div>
+  
+  <div class="side-menu-item" onclick="openOrderHistoryModal()">
+    <span>🔍</span>
+    <span>Cek Transaksi</span>
+  </div>
+  
+  <div class="side-menu-item" onclick="openWA()">
+    <span>📞</span>
+    <span>Hubungi Admin</span>
+  </div>
+
+  <!-- GARIS PEMBATAS -->
+  <div style="margin: 15px 10px; height: 1px; background: rgba(255,255,255,0.3);"></div>
+
+  <!-- SECTION INFORMASI -->
+  <div style="padding: 0 10px;">
+    <h4 style="color: #fcd34d; margin: 10px 0;">📝 CARA BERBELANJA</h4>
+    <ol style="font-size: 13px; line-height: 1.6; color: #e9d5ff; margin: 0 0 15px 0; padding-left: 20px;">
+      <li>Pilih game/layanan yang diinginkan</li>
+      <li>Masukkan data akun dengan benar</li>
+      <li>Pilih item yang akan dibeli</li>
+      <li>Lakukan pembayaran & kirim bukti</li>
+      <li>Tunggu konfirmasi dari admin</li>
+    </ol>
+
+    <h4 style="color: #fcd34d; margin: 10px 0;">⏰ JAM OPERASIONAL</h4>
+    <p style="font-size: 13px; color: #e9d5ff; margin: 0;">
+      Senin - Minggu<br>
+      09:00 - 22:00 WIB
+    </p>
+    <p style="font-size: 12px; color: #ccc; margin: 5px 0 0 0;">
+      *Tutup di luar jam operasional
+    </p>
+  </div>
+</div>
+
+
+<!-- OVERLAY MENU -->
+<div class="side-menu-overlay" id="menuOverlay" onclick="toggleSideMenu()"></div>
+
+
+
+<div class="hero">
+  <!-- Slider Banner -->
+  <div class="banner-slider">
+    <div class="banner-slide active" style="background-image:url('bannerstore.png')"></div>
+    <div class="banner-slide" style="background-image:url('bannerstore2.png')"></div> <!-- Ganti dengan nama file banner kedua -->
+    <div class="banner-slide" style="background-image:url('bannerstore3.png')"></div> <!-- Ganti dengan nama file banner ketiga -->
+  </div>
+  <!-- Indikator Titik Banner -->
+  <div class="banner-indicators">
+    <span class="indicator active" onclick="goToSlide(0)"></span>
+    <span class="indicator" onclick="goToSlide(1)"></span>
+    <span class="indicator" onclick="goToSlide(2)"></span>
+  </div>
+</div>
+
+
+<p style="text-align:center; font-size:12px; opacity:0.7;">
+OPEN 09:00 - 22:00 PM
+</p>
+<div class="container fade-in">
+
+<h2 class="title">🔥 POPULER</h2>
+<div class="recommended">
+  <!-- GAMBAR GAME POPULER (HANYA FILE ASLI) -->
+  <div class="rec" style="background-image:url('ml.png')" onclick="openGame('ml')"><span>Mobile Legends</span></div>
+  <div class="rec" style="background-image:url('ff.png')" onclick="openGame('ff')"><span>Free Fire</span></div>
+  <div class="rec" style="background-image:url('rbx.png')" onclick="openGame('rbx')"><span>Roblox</span></div>
+  <div class="rec" style="background-image:url('mcgg.png')" onclick="openGame('mcgg')"><span>Magic Chess GoGo</span></div>
+  <div class="rec" style="background-image:url('pubglogo.png')" onclick="openGame('pubg')"><span>PUBG Mobile</span></div>
+</div>
+
+<!-- Wrapper buat tab + indikator -->
+<div class="tabs-wrapper">
+  <div class="tabs" id="scrollableTabs">
+    <button class="tab active" onclick="selectTab(this, 'topup')">Topup Game</button>
+    <button class="tab" onclick="selectTab(this, 'edit')">Editing Prem</button>
+    <button class="tab" onclick="selectTab(this, 'voucher')">Voucher</button>
+    <!-- Bisa tambah tab lagi disini kalo mau, contoh: -->
+    <!-- <button class="tab" onclick="selectTab(this, 'jasa')">Jasa Lainnya</button> -->
+  </div>
+  <!-- Garis indikator bawah -->
+  <div class="tab-indicator" id="tabIndicator"></div>
+</div>
+
+
+
+<!-- HALAMAN AWAL -->
+<div id="home">
+  <h3>Pilih Game/Layanan</h3>
+  <div class="game-list" id="homeGameList"></div>
+  <button id="lihatBtn" onclick="toggleGame()">Lihat Selengkapnya</button>
+</div>
+</div>
+
+
+<!-- MODAL BARU UNTUK PESANAN & HISTORY -->
+<div id="orderHistoryModal">
+  <div id="modalContent">
+    <span class="close-modal" onclick="closeOrderHistoryModal()">&times;</span>
+    <h3 style="text-align:center; margin-top:0;">📊 Pesanan & Riwayat Pembelian</h3>
+
+    <!-- CEK & UPDATE STATUS PESANAN - DIPINDAHKAN KE MODAL -->
+    <div class="step-section" style="margin-top:20px;">
+      <div class="step-header">
+        <div class="step-number">🔍</div>
+        <span>Cek & Update Status Pesanan</span>
+      </div>
+      <div class="step-content">
+        <input type="text" id="orderCodeInput" placeholder="Masukkan Kode Pesanan Kamu">
+        <input type="text" id="verifyCodeInput" placeholder="Masukkan Kode Verifikasi dari Admin">
+        <button onclick="updateOrderStatus()" style="background:#6d28d9; margin-top:10px;">Cek & Update Status</button>
+        <p id="statusUpdateMessage" style="text-align:center; margin-top:10px; color:#4ade80; display:none;"></p>
+        <p class="step-note" style="margin-top:10px; font-size:12px; color:#ccc;">*Kode verifikasi akan diberikan setelah kamu melakukan transfer dan mengirim bukti ke WA Admin</p>
+      </div>
+    </div>
+
+    <!-- HISTORY PEMBELIAN - DIPINDAHKAN KE MODAL -->
+    <div class="step-section" style="margin-top:10px;">
+      <div class="step-header">
+        <div class="step-number">📝</div>
+        <span>History Pembelian Kamu</span>
+      </div>
+      <div class="step-content" id="historyContainer">
+        <input type="text" id="searchHistoryInput" placeholder="Cari berdasarkan kode pesanan..." style="margin-bottom:15px;">
+        <div id="historyList">
+          <p style="text-align:center; color:#ccc;">Belum ada riwayat pembelian</p>
+        </div>
+        <button onclick="toggleAllHistory()" style="background:#6d28d9; margin-top:10px; padding:8px; font-size:12px; display:none;" id="toggleHistoryBtn">Tampilkan Semua Riwayat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HALAMAN PENGISIAN - TANPA PERUBAHAN -->
+<div id="produk" class="hidden">
+  <div id="produk-container"> <!-- BARIS INI DITAMBAHKAN -->
+    <h3 id="judulGame" style="margin-bottom:15px; font-size:20px;"></h3>
+
+  <!-- STEP 1: DATA AKUN -->
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-number">1</div>
+      <span>Masukkan Data Akun</span>
+    </div>
+    <div class="step-content">
+      <input id="userId" placeholder="User ID">
+      <div class="error-text" id="errorUserId"></div>
+      <div id="serverBox">
+        <!-- Dropdown Server Genshin Impact -->
+        <div id="genshinServerContainer" class="hidden">
+          <select id="genshinServer">
+            <option value="">Pilih Server Genshin Impact</option>
+            <option value="Asia">Asia</option>
+            <option value="Europe">Europe</option>
+            <option value="America">America</option>
+            <option value="TW/HK/MO">TW/HK/MO</option>
+          </select>
+          <div class="error-text" id="errorGenshinServer"></div>
+        </div>
+        <!-- Input Server ID Lama -->
+        <input id="serverId" placeholder="Server ID">
+        <div class="error-text" id="errorServerId"></div>
+      </div>
+      <p class="step-note">*Pastikan data akun benar untuk menghindari kesalahan pengiriman</p>
+    </div>
+  </div>
+
+  <!-- STEP 2: PILIH PRODUK -->
+  <div class="step-section">
+    <div class="step-header">
+      <div class="step-number">2</div>
+      <span>Pilih Item Topup/Layanan</span>
+    </div>
+    <div class="step-content">
+      <!-- SPECIAL ITEMS SECTION -->
+      <div id="specialItemsContainer" class="hidden">
+        <div class="section-title">✨ Special Items</div>
+        <div id="specialItems"></div>
+      </div>
+
+      <!-- GARIS PEMISAH -->
+      <div id="dividerLine" class="divider hidden"></div>
+
+      <!-- LIST PRODUK UTAMA -->
+      <div id="mainItemsContainer">
+        <div class="section-title">💎 Produk Utama</div>
+        <div id="listProduk"></div>
+      </div>
+      <!-- Catatan Gamepass Roblox -->
+<p id="gamepassNote" style="margin-bottom:5px; font-size:14px; color:yellow; display:none; text-align:center; line-height:1.4;">
+  Via Gamepass!! Pending 5-7Days
+</p>
+
+<!-- Catatan Sesuai Item -->
+<div id="catatanGamepass" style="margin-bottom:5px; font-size:14px; color:yellow; display:none; text-align:left; line-height:1.4; margin-left:10px;">
+  <strong>Catatan:</strong>
+  <br><span id="aturanGamepass">- Pilih item terlebih dahulu</span>
+</div>
+
+    </div>
+  </div>
+
+  <!-- TOTAL HARGA -->
+  <div id="totalSection">
+    Total Yang Harus Dibayar: <span id="totalHarga">-</span>
+  </div>
+
+<!-- STEP 3: PILIH PEMBAYARAN -->
+<div class="step-section">
+  <div class="step-header">
+    <div class="step-number">3</div>
+    <span>Pilih Metode Pembayaran</span>
+  </div>
+  <div class="step-content">
+    <select id="payment">
+      <option>DANA</option>
+      <option>OVO</option>
+      <option>GOPAY</option>
+      <option>QRIS</option>
+    </select>
+  </div>
+</div>
+
+<!-- TOMBOL BARU -->
+<button id="tampilkanPembayaran" style="background:#2ECC71; color:white; border:none; padding:10px 20px; border-radius:8px; font-size:16px; width:100%; margin-bottom:10px;">
+  🔍 Tampilkan Cara Pembayaran
+</button>
+
+<button id="kirimKeWA" style="background:#25D366; color:white; border:none; padding:10px 20px; border-radius:8px; font-size:16px; width:100%; display:none;">
+  📱 Kirim Detail Pesanan ke WA Admin
+</button>
+
+<!-- CONTAINER CARA PEMBAYARAN -->
+<div id="linkBayarContainer" style="margin-top:15px; text-align:center; color:white; display:none; background:#1a032b; padding:10px; border-radius:8px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <p style="font-weight:bold; font-size:17px; margin:0;">✅ Cara Pembayaran Sudah Siap!</p>
+    <button id="tutupBayar" style="background:#dc2626; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">
+      ❌ Tutup
+    </button>
+  </div>
+</div>
+
+
+<!-- GAMBAR QRIS (DI PINDAHKAN KE SINI) -->
+<img id="qrisImg" src="qrisbaru.png" style="display:none; max-width:220px; margin:10px auto; border:2px solid white; border-radius:8px;">
+
+<button class="back-btn" onclick="back()">🔙 Kembali ke Beranda</button>
+
+</div>
+
+<!-- NOTIFIKASI -->
+<div id="orderNotification">
+  ✅ Pesanan berhasil dibuat! Cek History Pembelian untuk detailnya..
+</div>
+
+<!-- NOTIFIKASI TOKO TUTUP -->
+<div id="closedNotification">
+  Maaf cuy, toko lagi tutup nih! Bukanya jam 13:00-21:30 ya 👌
+</div>
+</div>
+
+<script>
+let game="", selected="", lastTab="topup";
+let showAllHistory = false;
+
+const adminFee = 180;
+
+// DATA REKENING & LINK PEMBAYARAN KAMU (SESUIKAN!)
+const rekeningPembayaran = {
+  DANA: {
+    nomor: "082273896548", // GANTI DENGAN NOMOR DANA KAMU
+    
+  },
+  GOPAY: {
+    nomor: "082273896548", // GANTI DENGAN NOMOR GOPAY KAMU
+    
+  },
+  OVO: {
+    nomor: "082273896548", // GANTI DENGAN NOMOR OVO KAMU
+    
+  },
+  QRIS: {
+    gambar: "", // PASTIKAN FILE INI ADA
+    catatan: "Untuk sementara qris nya minta di wa ya"
+  }
+};
+
+
+
+
+function toNumber(rp){
+  return parseInt(rp.replace(/[^0-9]/g,""));
+}
+
+function toRupiah(num){
+  return "Rp" + num.toLocaleString("id-ID");
+}
+
+// FUNGSI BARU UNTUK MODAL PESANAN & HISTORY
+function openOrderHistoryModal() {
+  document.getElementById('orderHistoryModal').style.display = 'block';
+  displayHistory(); // Refresh data history saat modal dibuka
+}
+
+function closeOrderHistoryModal() {
+  document.getElementById('orderHistoryModal').style.display = 'none';
+}
+
+// Tutup modal jika klik di luar area konten
+window.onclick = function(event) {
+  const modal = document.getElementById('orderHistoryModal');
+  if (event.target == modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// DATA ATURAN VALIDASI PER GAME
+const validasiRules = {
+  ml: {
+    userId: {
+      regex: /^[0-9]{7,10}$/,
+      pesanKosong: "⚠ Isi User ID ML dulu ya!",
+      pesanSalah: "⚠ User ID ML harus angka aja, panjang 7-10 karakter!"
+    },
+    serverId: {
+      regex: /^[1-9]{1,5}$/,
+      pesanKosong: "⚠ Isi Server ID ML dulu ya!",
+      pesanSalah: "⚠ Server ID ML harus angka aja, panjang 1-5 karakter!"
+    }
+  },
+  ff: {
+    userId: {
+      regex: /^[0-9]{8,12}$/,
+      pesanKosong: "⚠ Isi User ID FF dulu ya!",
+      pesanSalah: "⚠ User ID FF harus angka aja, panjang 8-12 karakter!"
+    },
+    serverId: { aktif: false }
+  },
+  rbx: {
+    userId: {
+      regex: /^[a-zA-Z0-9_]{3,20}$/,
+      pesanKosong: "⚠ Isi Username Roblox dulu ya!",
+      pesanSalah: "⚠ Username tidak boleh ada spasi atau simbol lain!"
+    },
+    serverId: { aktif: false }
+  },
+  pubg: {
+    userId: {
+      regex: /^[0-9]{6,10}$/,
+      pesanKosong: "⚠ Isi User ID PUBG dulu ya!",
+      pesanSalah: "⚠ User ID PUBG harus angka aja, panjang 6-10 karakter!"
+    },
+    serverId: { aktif: false }
+  },
+  mcgg: {
+    userId: {
+      regex: /^[0-9]{5,12}$/,
+      pesanKosong: "⚠ Isi User ID MCGG dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja!"
+    },
+    serverId: {
+    regex: /^[0-9]{1,5}$/,
+    pesanKosong: "⚠ Isi Server ID MCGG dulu ya!",
+    pesanSalah: "⚠ Server ID harus angka aja, panjang 1-5 karakter!"
+  }
+  },
+  bs: {
+    userId: {
+      regex: /^[0-9]{5,12}$/,
+      pesanKosong: "⚠ Isi User ID Blood Strike dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja!"
+    },
+    serverId: { aktif: false }
+  },
+  codm: {
+    userId: {
+      regex: /^[0-9]{5,12}$/,
+      pesanKosong: "⚠ Isi User ID CODM dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja!"
+    },
+    serverId: { aktif: false }
+  },
+  hok: {
+    userId: {
+      regex: /^[0-9]{5,12}$/,
+      pesanKosong: "⚠ Isi User ID HOK dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja!"
+    },
+    serverId: { aktif: false }
+  },
+  vp: {
+    userId: {
+      regex: /^[0-9]{5,12}$/,
+      pesanKosong: "⚠ Isi User ID Valorant dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja!"
+    },
+    serverId: { aktif: false }
+  },
+  gi: {
+    userId: {
+      regex: /^[0-9]{5,12}$/,
+      pesanKosong: "⚠ Isi User ID Genshin dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja!"
+    },
+    serverId: { 
+      aktif: "dropdown",
+      pesanKosong: "⚠ Pilih server Genshin dulu ya!"
+    }
+  },
+  fcm: {
+    userId: {
+      regex: /^[0-9]{5,12}$/,
+      pesanKosong: "⚠ Isi User ID FC Mobile dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja!"
+    },
+    serverId: { aktif: false }
+  },
+  ab: {
+    userId: {
+      regex: /^[0-9]{5,12}$/,
+      pesanKosong: "⚠ Isi User ID Arena Breakout dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja!"
+    },
+    serverId: { aktif: false }
+  },
+  ss: {
+    userId: {
+      regex: /^[0-9]{9,12}$/,
+      pesanKosong: "⚠ Isi User ID Super Sus dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja, panjang harus 9-12 karakter!!"
+    },
+    serverId: { aktif: false }
+  },
+  aov: {
+    userId: {
+      regex: /^[0-9]{6,12}$/,
+      pesanKosong: "⚠ Isi User ID Arena of Valor dulu ya!",
+      pesanSalah: "⚠ User ID harus angka aja, panjang harus 6-12 karakter!!"
+    },
+    serverId: { aktif: false }
+  },
+  edit: {
+    userId: {
+      regex: /^[a-zA-Z0-9@._]{5,50}$/,
+      pesanKosong: "⚠ Isi Nama Pemesannya yah!",
+      pesanSalah: "⚠ Format Nama Tidak Sesuai!"
+    },
+    serverId: { aktif: false }
+  }
+};
+
+// Data produk Topup Game
+const data = {
+  ml: {
+    special: [
+      {name:"Weekly Diamond Pass", price:"Rp27.500"},
+      {name:"Weekly Diamond Pass x2", price:"Rp54.700"},
+      {name:"Weekly Diamond Pass x3", price:"Rp82.300"},
+      {name:"Twilight Pass", price:"Rp141.800"}
+    ],
+    main: [
+      {name:"3 Diamonds", price:"Rp1.200"},
+      {name:"5 Diamonds", price:"Rp1.520"},
+      {name:"10 Diamonds", price:"Rp2.900"},
+      {name:"22 Diamonds", price:"Rp6.400"},
+      {name:"36 Diamonds", price:"Rp9.820"},
+      {name:"56 Diamonds", price:"Rp14.900"},
+      {name:"86 Diamonds", price:"Rp22.000"},
+      {name:"112 Diamonds", price:"Rp29.600"},
+      {name:"185 Diamonds", price:"Rp47.100"},
+      {name:"257 Diamonds", price:"Rp65.600"},
+      {name:"284 Diamonds", price:"Rp72.500"},
+      {name:"344 Diamonds", price:"Rp87.200"},
+      {name:"429 Diamonds", price:"Rp109.000"},
+      {name:"514 Diamonds", price:"Rp113.000"},
+      {name:"600 Diamonds", price:"Rp150.000"},
+      {name:"706 Diamonds", price:"Rp180.900"},
+      {name:"875 Diamonds", price:"Rp218.100"},
+      {name:"963 Diamonds", price:"Rp246.000"},
+      {name:"1.050 Diamonds", price:"Rp259.000"},
+      {name:"1.220 Diamonds", price:"Rp295.400"}  
+    ],
+    mainTitle: "💎 Diamonds"
+  },
+  ff: {
+    special: [
+      {name:"Member Mingguan", price:"Rp28.100"},
+      {name:"Member Mingguan x2", price:"Rp60.300"},
+      {name:"Member Bulanan", price:"Rp84.000"}
+    ],
+    main: [
+      {name:"5 Diamonds", price:"Rp920"}, 
+      {name:"10 Diamonds", price:"Rp1.879"}, 
+      {name:"12 Diamonds", price:"Rp2.000"}, 
+      {name:"15 Diamonds", price:"Rp2.845"}, 
+      {name:"20 Diamonds", price:"Rp3.793"}, 
+      {name:"25 Diamonds", price:"Rp4.741"},
+      {name:"50 Diamonds", price:"Rp7.000"},
+      {name:"70 Diamonds", price:"Rp9.000"},
+      {name:"100 Diamonds", price:"Rp13.500"},
+      {name:"140 Diamonds", price:"Rp17.900"},
+      {name:"210 Diamonds", price:"Rp26.200"},
+      {name:"250 Diamonds", price:"Rp35.000"},
+      {name:"355 Diamonds", price:"Rp45.200"},
+      {name:"405 Diamonds", price:"Rp55.800"}, 
+      {name:"520 Diamonds", price:"Rp71.000"}, 
+      {name:"720 Diamonds", price:"Rp94.300"}, 
+      {name:"1.000 Diamonds", price:"Rp126.500"},
+      {name:"1.450 Diamonds", price:"Rp180.000"}
+    ],
+    mainTitle: "💎 Diamonds"
+  },
+  rbx: {
+    special: [],
+    main: [
+      {name:"50 Robux", price:"Rp6.900"},
+      {name:"80 Robux", price:"Rp10.400"},
+      {name:"100 Robux", price:"Rp13.200"},
+      {name:"200 Robux", price:"Rp25.000"},
+      {name:"300 Robux", price:"Rp37.000"},
+      {name:"400 Robux", price:"Rp48.900"},
+      {name:"500 Robux", price:"Rp62.000"},
+      {name:"600 Robux", price:"Rp72.200"},
+      {name:"700 Robux", price:"Rp84.000"},
+      {name:"800 Robux", price:"Rp96.900"},
+      {name:"900 Robux", price:"Rp108.000"},
+      {name:"1.000 Robux", price:"Rp124.000"}
+    ],
+    mainTitle: "💎 Robux"
+  },
+  pubg: {
+    special: [
+      {name:"weekly deal pack 1", price:"Rp13.200"},
+      {name:"weekly deal pack 2", price:"Rp39.820"}
+      ],
+    main: [
+      {name:"15 UC", price:"Rp8.000"},
+      {name:"35 UC", price:"Rp15.000"},
+      {name:"60 UC", price:"Rp16.000"},
+      {name:"100 UC", price:"Rp29.000"},
+      {name:"150 UC", price:"Rp45.200"},
+      {name:"200 UC", price:"Rp59.900"},
+      {name:"365 UC", price:"Rp73.000"},
+      {name:"385 UC", price:"Rp94.000"},
+      {name:"445 UC", price:"Rp110.200"}
+    ],
+    mainTitle: "💎 UC [Region Indo]"
+  },
+  mcgg: {
+    special: [
+      {name:"Weekly Pass", price:"Rp25.600"},
+      {name:"Weekly Card", price:"Rp26.500"},
+      {name:"Weekly Pass x2", price:"Rp50.400"},
+       {name:"Weekly Card x2", price:"Rp56.000"},
+    ],
+    main: [
+      {name:"12 Diamonds", price:"Rp3.200"},
+      {name:"28 Diamonds", price:"Rp6.900"},
+      {name:"56 Diamonds", price:"Rp13.000"},
+      {name:"85 Diamonds", price:"Rp20.200"},
+      {name:"112 Diamonds", price:"Rp25.400"},
+      {name:"170 Diamonds", price:"Rp39.300"},
+      {name:"240 Diamonds", price:"Rp55.800"},
+      {name:"336 Diamonds", price:"Rp75.900"}
+    ],
+    mainTitle: "💎 Diamonds"
+  },
+  bs: {
+    special: [],
+    main: [
+      {name:"105 GOLD", price:"Rp11.500"},
+      {name:"320 GOLD", price:"Rp33.500"},
+      {name:"540 GOLD", price:"Rp55.600"},
+      {name:"645 GOLD", price:"Rp66.800"},
+      {name:"860 GOLD", price:"Rp88.700"},
+      {name:"1.100GOLD", price:"Rp110.900"}
+    ],
+    mainTitle: "💎 Gold"
+  },
+  codm: {
+    special: [],
+    main: [
+      {name:"31 CP", price:"Rp4.900"},
+      {name:"63 CP", price:"Rp9.200"},
+      {name:"128 CP", price:"Rp17.900"},
+      {name:"321 CP", price:"Rp44.000"},
+      {name:"645 CP", price:"Rp87.500"},
+      {name:"800 CP", price:"Rp106.400"}
+    ],
+    mainTitle: "💎 CP"
+  },
+  hok: {
+    special: [],
+    main: [
+      {name:"8 TOKEN", price:"Rp1.900"},
+      {name:"16 TOKEN", price:"Rp3.200"},
+      {name:"23 TOKEN", price:"Rp4.800"},
+      {name:"80 TOKEN", price:"Rp14.300"},
+      {name:"240 TOKEN", price:"Rp42.100"},
+      {name:"400 TOKEN", price:"Rp69.800"}
+    ],
+    mainTitle: "💎 Tokens"
+  },
+  vp: {
+    special: [],
+    main: [
+      {name:"475 POINT", price:"Rp49.500"},
+      {name:"1000 POINT", price:"Rp98.000"},
+      {name:"1475 POINT", price:"Rp147.000"}
+    ],
+    mainTitle: "💎 Valorant Points"
+  },
+  gi: {
+  special: [
+    {name:"Blessing Welkin Moon", price:"Rp59.000" },
+    {name:"Blessing Welkin Moon x2", price:"Rp123.000"}
+  ],
+  main: [
+    {name:"60 Genesis Crystal", price:"Rp12.500"},
+    {name:"330 Genesis Crystal", price:"Rp59.200"},
+    {name:"1.090 Genesis Crystal", price:"Rp181.000"},
+    {name:"2.240 Genesis Crystal", price:"Rp375.000"}
+  ],
+  mainTitle: "💎 Genesis Crystals",
+  chronal: [
+    {name:"60 Chronal Nexus", price:"Rp13.300"},
+    {name:"330 Chronal Nexus", price:"Rp62.100"},
+    {name:"1.090 Chronal Nexus", price:"Rp193.000"}
+  ],
+  chronalTitle: "⏳ Chronal Nexus"
+},
+  fcm: {
+    special: [],
+    main: [
+      {name:"40 Point", price:"Rp6.400"},
+      {name:"100 Point", price:"Rp14.900"},
+      {name:"520 Point", price:"Rp72.400"},
+      {name:"1070 Point", price:"Rp145.000"}
+    ],
+    mainTitle: "💎 Point"
+  },
+  ab: {
+    special: [],
+    main: [
+      {name:"66 Bonds", price:"Rp13.800"},
+      {name:"325 Bonds", price:"Rp64.600"},
+      {name:"665 Bonds", price:"Rp130.400"}
+    ],
+    mainTitle: "💎 Bonds"
+  },
+  ss: {
+    special: [
+      {name:"Weekly Card", price:"Rp11.400" },
+      {name:"SUPER PASS", price:"Rp55.500" }
+      ],
+    main: [
+      {name:"100 Golden Star", price:"Rp10.500"},
+      {name:"310 Golden Star", price:"Rp29.400"},
+      {name:"520 Golden Star", price:"Rp48.920"}
+    ],
+    mainTitle: "💎 Golden Star"
+  },
+  aov: {
+    special: [],
+    main: [
+      {name:"40 Voucher", price:"Rp9.600"},
+      {name:"90 Voucher", price:"Rp18.820"},
+      {name:"230 Voucher", price:"Rp46.500"}
+    ],
+    mainTitle: "💎 Voucher"
+  },
+  coc: {
+    special: [],
+    main: [
+      {name:"80 Gems", price:"Rp14.100"},
+      {name:"500 Gems", price:"Rp66.200"},
+      {name:"1.200 Gems", price:"Rp135.500"},
+      {name:"2.500 Gems", price:"Rp269.400"}
+    ],
+    mainTitle: "💎 Gems"
+  },
+  sg: {
+    special: [],
+    main: [
+      {name:"250 Gems", price:"Rp14.100"},
+      {name:"800 Gems", price:"Rp35.900"},
+      {name:"120 Gems", price:"Rp42.500"},
+      {name:"1.600 Gems + 75 Tokens", price:"Rp62.000"},
+      {name:"5.000 Gems + 275 Tokens", price:"Rp139.000"}
+    ],
+    mainTitle: "💎 Gems"
+  },
+  df: {
+    special: [
+      {name:"Stratfall Supplies", price:"Rp15.200"},
+      {name:"Black Hawk Down Genesis", price:"Rp42.320"}
+      ],
+    main: [
+      {name:"18 Coins", price:"Rp5.500"},
+      {name:"30 Coins", price:"Rp8.000"},
+      {name:"60 Coins", price:"Rp14.900"},
+      {name:"300 Coins", price:"Rp72.400"},
+      {name:"420 Coins", price:"Rp99.000"}
+    ],
+    mainTitle: "💎 Coins"
+  },
+  ep: {
+    special: [
+      {name:"Weekly Egg Coin Pack", price:"Rp14.100"},
+      {name:"Yoyo Membership", price:"Rp35.900"},
+      {name:"Shiny Coin Jar", price:"Rp35.900"}
+      ],
+    main: [
+      {name:"10 Coins", price:"Rp2.400"},
+      {name:"60+3 Coins", price:"Rp11.500"},
+      {name:"120+6 Coins", price:"Rp21.800"},
+      {name:"300+24 Coins", price:"Rp53.900"},
+      {name:"1.380+144 Coins", price:"Rp222.600"}
+    ],
+    mainTitle: "💎 Coins"
+  },
+  sm: {
+    special: [],
+    main: [
+      {name:"60 Candy", price:"Rp12.320"},
+      {name:"180 Candy", price:"Rp37.500"},
+      {name:"300+16 Candy", price:"Rp70.500"},
+      {name:"680+38 Candy", price:"Rp125.520"},
+      {name:"1280+88 Candy", price:"Rp150.540"}
+    ],
+    mainTitle: "💎 Candy"
+  }
+};
+
+// Data produk Editing Premium
+const editing = {
+  "AM Premium":[{name:"1 Tahun Private", price:"Rp15.000"}],
+  "Jasa Edit JJ":[{name:"Edit JJ Via Preset", price:"Rp5.000"},{name:"Edit JJ Via Manual", price:"Rp10.000"}],
+  "Capcut Premium":[
+    {name:"7 Hari Private", price:"Rp5.000"},
+    {name:"30 Hari Private", price:"Rp10.000"},
+    {name:"35 Hari Private", price:"Rp13.000"}
+  ],
+  "Canva Premium":[
+    {name:"Canva Pro 1 Bulan", price:"Rp7.000"},
+    {name:"Canva Pro 2 Bulan", price:"Rp10.000"}
+    ]
+};
+
+// Data produk Voucher & Lainnya
+const voucher = {
+  "Redfinger Code":[
+    {name:"7 Hari VIP", price:"Rp19.400"},
+    {name:"7 Hari KVIP", price:"Rp33.900"},
+    {name:"30 Hari VIP", price:"Rp59.000"}
+  ],
+  "Vsphone Code":[
+    {name:"VIP 7DAY", price:"Rp14.500"},
+    {name:"VIP 30DAY", price:"Rp39.500"},
+    {name:"KVIP 7DAY", price:"Rp24.500"},
+    {name:"KVIP 30DAY", price:"Rp63.400"}
+  ],
+  "Netflix Sharing":[
+    {name:"Netflix 1 Bulan Semiprivate", price:"Rp49.500"},
+    {name:"Netflix 2 Bulan Semiprivate", price:"Rp95.000"}
+  ],
+  "Youtube Premium":[
+    {name:"Youtube prem 1 bulan famplan", price:"Rp5.500"},
+    {name:"Youtube prem 1 bulan indplan", price:"Rp13.000"},
+    {name:"Youtube prem 2 bulan", price:"Rp15.000"},
+    {name:"Youtube prem 3 bulan", price:"Rp23.000"}
+  ],
+  "Prime Video":[
+    {name:"Prime Video 1 bulan sharing", price:"Rp6.000"},
+    {name:"Prime Video 1 bulan private", price:"Rp9.200"}
+  ],
+  "Bstation":[
+    {name:"Bstation premium 1 bulan", price:"Rp10.000"},
+    {name:"Bstation Premium 1 tahun", price:"Rp32.300"}
+  ]
+};
+
+
+// Mapping kode ke nama lengkap
+const gameFullNames = {
+  ml: "Mobile Legends",
+  ff: "Free Fire",
+  rbx: "Roblox",
+  pubg: "PUBG Mobile",
+  mcgg: "Magic Chess GoGo",
+  bs: "Blood Strike",
+  codm: "Call of Duty Mobile",
+  hok: "Honor of Kings",
+  vp: "Valorant Point",
+  gi: "Genshin Impact",
+  fcm: "FC Mobile",
+  ab: "Arena Breakout",
+  ss: "Super Sus",
+  aov: "Arena of Valor",
+  coc: "Class of Clan",
+  sg: "Stumble Guys",
+  df: "Delta Force",
+  ep: "Eggy Party",
+  sm: "Sausage man"
+};
+
+// FUNGSI VALIDASI INPUT
+function validasiInput() {
+  let isValid = true;
+  const userId = document.getElementById("userId").value;
+  const errorUserId = document.getElementById("errorUserId");
+  
+  const rules = lastTab === "topup" ? validasiRules[game] : validasiRules["edit"];
+ 
+  // Validasi User ID
+  if (!userId) {
+    errorUserId.textContent = rules.userId.pesanKosong;
+    document.getElementById("userId").classList.add("input-error");
+    isValid = false;
+  } else if (!rules.userId.regex.test(userId)) {
+    errorUserId.textContent = rules.userId.pesanSalah;
+    document.getElementById("userId").classList.add("input-error");
+    isValid = false;
+  } else {
+    errorUserId.textContent = "";
+    document.getElementById("userId").classList.remove("input-error");
+  }
+
+  // Validasi Server ID (jika ada)
+  if (rules.serverId && rules.serverId.aktif !== false) {
+    if (game === "gi") {
+      const serverVal = document.getElementById("genshinServer").value;
+      const errorGenshinServer = document.getElementById("errorGenshinServer");
+      if (!serverVal) {
+        errorGenshinServer.textContent = rules.serverId.pesanKosong;
+        document.getElementById("genshinServer").classList.add("input-error");
+        isValid = false;
+      } else {
+        errorGenshinServer.textContent = "";
+        document.getElementById("genshinServer").classList.remove("input-error");
+      }
+    } else {
+      const serverId = document.getElementById("serverId").value;
+      const errorServerId = document.getElementById("errorServerId");
+      if (!serverId) {
+        errorServerId.textContent = rules.serverId.pesanKosong;
+        document.getElementById("serverId").classList.add("input-error");
+        isValid = false;
+      } else if (!rules.serverId.regex.test(serverId)) {
+        errorServerId.textContent = rules.serverId.pesanSalah;
+        document.getElementById("serverId").classList.add("input-error");
+        isValid = false;
+      } else {
+        errorServerId.textContent = "";
+        document.getElementById("serverId").classList.remove("input-error");
+      }
+    }
+  }
+
+  return isValid;
+}
+
+// Load Home Games dengan gambar
+function loadHomeGames(){
+  const list = document.getElementById("homeGameList");
+  list.innerHTML = "";
+  // Mapping kode game ke nama file gambar (sesuaikan nama file gambar kamu ya!)
+  const gameImages = {
+    ml: "mlbb2.png",
+    ff: "ff2.png",
+    rbx: "rblx.png",
+    pubg: "pubg2.png",
+    mcgg: "mcgg2.png",
+    bs: "bs.png",
+    codm: "codm.png", // Tambahkan jika ada gambarnya
+    hok: "hok.png",   // Tambahkan jika ada gambarnya
+    vp: "vp.png",     // Tambahkan jika ada gambarnya
+    gi: "gi.png",     // Tambahkan jika ada gambarnya
+    fcm: "fcm.png",   // Tambahkan jika ada gambarnya
+    ab: "ab.png",     // Tambahkan jika ada gambarnya
+    ss: "ss.png",
+    aov: "aov.png",
+    coc: "coc.png",
+    sg: "stumble.png",
+    df: "df.png",
+    ep: "ep.png",
+    sm: "sm.png"
+  };
+  Object.keys(gameFullNames).forEach(g=>{
+    list.innerHTML += `
+      <div class="game-image-card" onclick="openGame('${g}')">
+        <img src="${gameImages[g]}" alt="${gameFullNames[g]}">
+        <span>${gameFullNames[g]}</span>
+      </div>
+    `;
+  });
+}
+
+// Mapping gambar untuk Editing Prem
+const editingImages = {
+  "AM Premium": "amprem.png",
+  "Jasa Edit JJ": "editjj.png",
+  "Capcut Premium": "capcut.png",
+  "Canva Premium": "canva.png"
+};
+
+// Mapping gambar untuk Voucher
+const voucherImages = {
+  "Redfinger Code": "redfingercd.png",
+  "Vsphone Code": "vsphone.png",
+  "Netflix Sharing": "Netflix.png"
+};
+
+
+
+// Open Topup Game
+function openGame(g){
+  resetPembayaranDisplay(); // <<< BARIS YANG HARUS DITAMBAHKAN
+  game=g; lastTab="topup";
+  const serverBox=document.getElementById("serverBox");
+  const gamepassNote=document.getElementById("gamepassNote");
+  const userInput=document.getElementById("userId");
+  const specialContainer=document.getElementById("specialItemsContainer");
+  const specialItems=document.getElementById("specialItems");
+  const dividerLine=document.getElementById("dividerLine");
+  const mainItemsContainer=document.getElementById("mainItemsContainer");
+  const mainTitle=document.querySelector("#mainItemsContainer .section-title");
+  const listProduk=document.getElementById("listProduk");
+
+  // Set aturan validasi & tampilan
+  const rules = validasiRules[g];
+  const genshinContainer = document.getElementById("genshinServerContainer");
+  const serverInput = document.getElementById("serverId");
+  const errorGenshinServer = document.getElementById("errorGenshinServer");
+
+  // Atur tampilan server sesuai game
+  if (g === "gi") {
+    serverBox.style.display = "block";
+    genshinContainer.classList.remove("hidden");
+    serverInput.classList.add("hidden");
+    errorGenshinServer.textContent = "";
+  } else if (g === "ml" || g === "mcgg") {
+    serverBox.style.display = "block";
+    genshinContainer.classList.add("hidden");
+    serverInput.classList.remove("hidden");
+  } else {
+    serverBox.style.display = "none";
+    genshinContainer.classList.add("hidden");
+    serverInput.classList.add("hidden");
+  }
+
+  gamepassNote.style.display = g==="rbx"? "block":"none";
+  userInput.placeholder = g==="rbx"? "Username":"User ID";
+  
+  // Reset input & error
+  document.getElementById("userId").value = "";
+  document.getElementById("serverId").value = "";
+  document.getElementById("genshinServer").value = "";
+  document.getElementById("errorUserId").textContent = "";
+  document.getElementById("errorServerId").textContent = "";
+  document.getElementById("errorGenshinServer").textContent = "";
+  document.getElementById("userId").classList.remove("input-error");
+  document.getElementById("serverId").classList.remove("input-error");
+  document.getElementById("genshinServer").classList.remove("input-error");
+  document.getElementById("totalHarga").textContent = "-";
+  selected = "";
+  const catatanContainer = document.getElementById("catatanGamepass");
+  const aturanText = document.getElementById("aturanGamepass");
+  if(g === "rbx"){
+    catatanContainer.style.display = "none"; 
+    aturanText.textContent = "- Pilih item terlebih dahulu";
+  } else {
+    catatanContainer.style.display = "none";
+  }
+
+  document.getElementById("home").style.display="none";
+  document.getElementById("produk").classList.remove("hidden");
+
+  const fullName = gameFullNames[g];
+  document.getElementById("judulGame").innerText = fullName;
+
+  // Tampilkan Special Items jika ada
+  if(data[g].special.length > 0){
+    specialContainer.classList.remove("hidden");
+    dividerLine.classList.remove("hidden");
+    let specialHtml="";
+    data[g].special.forEach((i,index)=>{
+      specialHtml += `<div class="special-card" style="animation-delay:${index*0.1}s" onclick="pilih(this,'${i.name}','${i.price}')">${i.name}<br>${i.price}</div>`;
+    });
+    specialItems.innerHTML = specialHtml;
+  } else {
+    specialContainer.classList.add("hidden");
+    dividerLine.classList.add("hidden");
+    specialItems.innerHTML = "";
+  }
+
+  // Tampilkan Item Utama dengan judul sesuai game
+  mainTitle.innerText = data[g].mainTitle;
+  let produkHtml="";
+  data[g].main.forEach((i,index)=>{
+    produkHtml += `<div class="card" style="animation-delay:${index*0.1}s" onclick="pilih(this,'${i.name}','${i.price}')">${i.name}<br>${i.price}</div>`;
+  });
+  listProduk.innerHTML = produkHtml;
+  
+// Tampilkan Chronal Nexus HANYA UNTUK Genshin Impact
+if(g === "gi"){
+  const chronalContainer = document.createElement("div");
+  chronalContainer.id = "chronalItemsContainer";
+  chronalContainer.innerHTML = `
+    <div class="section-title">${data[g].chronalTitle}</div>
+    <div style="display: grid; grid-template-columns: repeat(2,1fr); gap: 10px;" id="chronalItems"></div>
+  `;
+  mainItemsContainer.parentNode.insertBefore(chronalContainer, mainItemsContainer.nextSibling);
+
+  const chronalItems = document.getElementById("chronalItems");
+  if(data[g].chronal.length > 0){
+    let chronalHtml = "";
+    data[g].chronal.forEach((i,index)=>{
+      chronalHtml += `<div class="card" style="animation-delay:${(index + data[g].main.length)*0.1}s" onclick="pilih(this,'${i.name}','${i.price}')">${i.name}<br>${i.price}</div>`;
+    });
+    chronalItems.innerHTML = chronalHtml;
+  } else {
+    chronalContainer.style.display = "none";
+  }
+} else {
+  const existingChronal = document.getElementById("chronalItemsContainer");
+  if(existingChronal){
+    existingChronal.remove();
+  }
+}
+
+}
+
+// Open Editing Premium
+function openEditing(name){
+  game=name; lastTab="edit";
+  const specialContainer=document.getElementById("specialItemsContainer");
+  const dividerLine=document.getElementById("dividerLine");
+  const mainItemsContainer=document.getElementById("mainItemsContainer");
+  const mainTitle=document.querySelector("#mainItemsContainer .section-title");
+  
+  // Reset input & error
+  document.getElementById("userId").value = "";
+  document.getElementById("errorUserId").textContent = "";
+  document.getElementById("userId").classList.remove("input-error");
+  document.getElementById("totalHarga").textContent = "-";
+  selected = "";
+
+  document.getElementById("home").style.display="none";
+  document.getElementById("produk").classList.remove("hidden");
+  document.getElementById("judulGame").innerText = name;
+  
+  // Sembunyikan Special Items dan pemisah
+  specialContainer.classList.add("hidden");
+  dividerLine.classList.add("hidden");
+  
+  // Ubah judul dan tampilkan produk TANPA GAMBAR
+  mainTitle.innerText = "📦 Paket Langganan";
+  let html="";
+  editing[name].forEach((i,index)=>{
+    html += `<div class="card" style="animation-delay:${index*0.1}s" onclick="pilih(this,'${i.name}','${i.price}')">
+              ${i.name}<br>${i.price}
+            </div>`;
+  });
+  document.getElementById("listProduk").innerHTML = html;
+  document.getElementById("serverBox").style.display = "none";
+  document.getElementById("gamepassNote").style.display = "none";
+  document.getElementById("userId").placeholder = "Nama Pemesan";
+}
+
+// Open Voucher & Lainnya
+function openVoucher(name){
+  game=name; lastTab="voucher";
+  const specialContainer=document.getElementById("specialItemsContainer");
+  const dividerLine=document.getElementById("dividerLine");
+  const mainItemsContainer=document.getElementById("mainItemsContainer");
+  const mainTitle=document.querySelector("#mainItemsContainer .section-title");
+  
+  // Reset input & error
+  document.getElementById("userId").value = "";
+  document.getElementById("errorUserId").textContent = "";
+  document.getElementById("userId").classList.remove("input-error");
+  document.getElementById("totalHarga").textContent = "-";
+  selected = "";
+
+  document.getElementById("home").style.display="none";
+  document.getElementById("produk").classList.remove("hidden");
+  document.getElementById("judulGame").innerText = name;
+  
+  // Sembunyikan Special Items dan pemisah
+  specialContainer.classList.add("hidden");
+  dividerLine.classList.add("hidden");
+  
+  // Ubah judul dan tampilkan produk TANPA GAMBAR
+  mainTitle.innerText = "📦 Pilihan Produk";
+  let html="";
+  voucher[name].forEach((i,index)=>{
+  html += `<div class="card" style="animation-delay:${index*0.1}s" onclick="pilih(this,'${i.name}','${i.price}')">
+          ${i.name}<br>${i.price}
+        </div>`;
+
+
+  });
+  document.getElementById("listProduk").innerHTML = html;
+  document.getElementById("serverBox").style.display = "none";
+  document.getElementById("gamepassNote").style.display = "none";
+  document.getElementById("userId").placeholder = "Nama Pemesan";
+}
+
+
+
+// Data aturan gamepass Roblox
+const aturanGamepass = {
+  "50 Robux": "set 72 for 50Robux",
+  "80 Robux": "set 115 for 80Robux",
+  "100 Robux": "set 143 for 100Robux",
+  "200 Robux": "set 286 for 200Robux",
+  "300 Robux": "set 429 for 300Robux",
+  "400 Robux": "set 572 for 400Robux",
+  "500 Robux": "set 715 for 500Robux",
+  "600 Robux": "set 858 for 600Robux",
+  "700 Robux": "set 1001 for 700Robux",
+  "800 Robux": "set 1143 for 800Robux",
+  "900 Robux": "set 1287 for 900Robux",
+  "1.000 Robux": "set 1430 for 1000Robux"
+};
+
+
+function pilih(el,item,harga){ 
+  selected=item; 
+  // Hapus kelas selected dari semua card
+  document.querySelectorAll(".card, .special-card").forEach(c=>c.classList.remove("selected")); 
+  el.classList.add("selected"); 
+
+  // Hitung total harga real-time
+  const hargaNominal = toNumber(harga);
+  const total = hargaNominal + adminFee;
+  document.getElementById("totalHarga").textContent = toRupiah(total);
+
+  // Tampilin catatan sesuai item yang dipilih (khusus Roblox)
+  const catatanContainer = document.getElementById("catatanGamepass");
+  const aturanText = document.getElementById("aturanGamepass");
+  
+  if(game === "rbx"){
+    catatanContainer.style.display = "block";
+    aturanText.textContent = aturanGamepass[item] || "- Aturan belum tersedia";
+  } else {
+    catatanContainer.style.display = "none";
+  }
+}
+
+// FUNGSI BUAT KODE PESANAN UNIK
+function createOrderCode() {
+  const date = new Date();
+  const dateStr = date.getFullYear() + String(date.getMonth()+1).padStart(2, '0') + String(date.getDate()).padStart(2, '0');
+  const count = JSON.parse(localStorage.getItem("sullstoreHistory"))?.length || 0;
+  return `SULL-${dateStr}-${String(count+1).padStart(3, '0')}`;
+}
+
+// FUNGSI SIMPAN HISTORY PEMBELIAN
+function saveOrder(orderData) {
+  let history = JSON.parse(localStorage.getItem("sullstoreHistory")) || [];
+  // Tambahin kode pesanan dan status awal
+  orderData.orderCode = createOrderCode();
+  orderData.status = "Menunggu Pembayaran";
+  // Kode verifikasi diisi BELUM ADA
+  orderData.verifyCode = "BELUM ADA";
+  history.unshift(orderData);
+  localStorage.setItem("sullstoreHistory", JSON.stringify(history));
+  showNotification();
+  displayHistory();
+}
+
+// FUNGSI TAMPILKAN NOTIFIKASI
+function showNotification() {
+  const notif = document.getElementById("orderNotification");
+  notif.style.display = "block";
+  // Sembunyikan notif setelah 5 detik
+  setTimeout(() => {
+    notif.style.display = "none";
+  }, 5000);
+}
+
+// FUNGSI TAMPILKAN HISTORY PEMBELIAN
+function displayHistory() {
+  const history = JSON.parse(localStorage.getItem("sullstoreHistory")) || [];
+  const historyList = document.getElementById("historyList");
+  const toggleBtn = document.getElementById("toggleHistoryBtn");
+  
+  if (history.length === 0) {
+    historyList.innerHTML = "<p style='text-align:center; color:#ccc;'>Belum ada riwayat pembelian</p>";
+    toggleBtn.style.display = "none";
+    return;
+  }
+
+  toggleBtn.style.display = "block";
+
+  // Filter history yang ditampilkan: cuma 1 pesanan terbaru kalo gak di-toggle
+  const displayData = showAllHistory ? history : history.slice(0, 1);
+
+  let historyHtml = "<div style='display:grid; gap:10px;'>";
+  displayData.forEach((order, index) => {
+    const statusColor = order.status === "Menunggu Pembayaran" ? "#fcd34d" : "#4ade80";
+    historyHtml += `
+      <div style="background:#2e1065; padding:10px; border-radius:8px;">
+        <p><strong>No. ${index + 1}</strong> | Kode Pesanan: ${order.orderCode}</p>
+        <p>🎮 Game: ${order.game}</p>
+        <p>💎 Item: ${order.item}</p>
+        <p>💰 Total Bayar: ${order.total}</p>
+        <p>🆔 User ID: ${order.userId}</p>
+        <p>🌐 Server: ${order.server}</p>
+        <p><strong style="color:${statusColor};">Status: ${order.status}</strong></p>
+        <p style="font-size:12px; color:#ccc; margin-top:5px;">*Kode verifikasi akan dikirim setelah kamu transfer</p>
+      </div>
+    `;
+  });
+
+  // Tambahin pesan kalo ada riwayat yang disembunyikan
+  if (!showAllHistory && history.length > 1) {
+    historyHtml += `<p style='text-align:center; color:#ccc; font-size:12px;'>+ ${history.length - 1} riwayat lainnya...</p>`;
+  }
+
+  historyHtml += "</div>";
+  historyList.innerHTML = historyHtml;
+}
+
+// FUNGSI TOGGLE SEMUA HISTORY
+function toggleAllHistory() {
+  showAllHistory = !showAllHistory;
+  const toggleBtn = document.getElementById("toggleHistoryBtn");
+  toggleBtn.innerText = showAllHistory ? "Sembunyikan Riwayat Lama" : "Tampilkan Semua Riwayat";
+  displayHistory();
+}
+
+// FUNGSI PENCARIAN HISTORY
+function searchHistory() {
+  const searchText = document.getElementById("searchHistoryInput").value.toLowerCase().trim();
+  const history = JSON.parse(localStorage.getItem("sullstoreHistory")) || [];
+  
+  if (searchText === "") {
+    displayHistory();
+    return;
+  }
+
+  const filteredHistory = history.filter(order => order.orderCode.toLowerCase().includes(searchText));
+  const historyList = document.getElementById("historyList");
+
+  if (filteredHistory.length === 0) {
+    historyList.innerHTML = "<p style='text-align:center; color:#ccc;'>Riwayat tidak ditemukan</p>";
+    return;
+  }
+
+  let historyHtml = "<div style='display:grid; gap:10px;'>";
+  filteredHistory.forEach((order, index) => {
+    const statusColor = order.status === "Menunggu Pembayaran" ? "#fcd34d" : "#4ade80";
+    historyHtml += `
+      <div style="background:#2e1065; padding:10px; border-radius:8px;">
+        <p><strong>No. ${index + 1}</strong> | Kode Pesanan: ${order.orderCode}</p>
+        <p>🎮 Game: ${order.game}</p>
+        <p>💎 Item: ${order.item}</p>
+        <p>💰 Total Bayar: ${order.total}</p>
+        <p>🆔 User ID: ${order.userId}</p>
+        <p>🌐 Server: ${order.server}</p>
+        <p><strong style="color:${statusColor};">Status: ${order.status}</strong></p>
+      </div>
+    `;
+  });
+  historyHtml += "</div>";
+  historyList.innerHTML = historyHtml;
+}
+
+// FUNGSI UPDATE STATUS PESANAN (DENGAN VERIFIKASI)
+function updateOrderStatus() {
+  const orderCode = document.getElementById("orderCodeInput").value.trim();
+  const verifyCode = document.getElementById("verifyCodeInput").value.trim();
+  const message = document.getElementById("statusUpdateMessage");
+  
+  if (!orderCode) {
+    message.style.color = "#dc2626";
+    message.textContent = "⚠ Masukkan kode pesanan dulu ya!";
+    message.style.display = "block";
+    return;
+  }
+
+  if (!verifyCode) {
+    message.style.color = "#dc2626";
+    message.textContent = "⚠ Masukkan kode verifikasi dari admin dulu ya!";
+    message.style.display = "block";
+    return;
+  }
+
+  let history = JSON.parse(localStorage.getItem("sullstoreHistory")) || [];
+  const orderFound = history.find(order => order.orderCode === orderCode);
+
+  if (!orderFound) {
+    message.style.color = "#dc2626";
+    message.textContent = "⚠ Kode pesanan tidak ditemukan!";
+    message.style.display = "block";
+    return;
+  }
+
+  // Cek apakah kode verifikasi sesuai
+  if (verifyCode === "BELUM ADA" || verifyCode.length < 5) {
+    message.style.color = "#dc2626";
+    message.textContent = "⚠ Kode verifikasi salah atau belum diberikan oleh admin!";
+    message.style.display = "block";
+    return;
+  }
+
+  // Update status menjadi sukses
+  orderFound.status = "Pembayaran Sukses & Sedang Diproses";
+  orderFound.verifyCode = verifyCode;
+  localStorage.setItem("sullstoreHistory", JSON.stringify(history));
+  
+  message.style.color = "#4ade80";
+  message.textContent = "✅ Status pesanan berhasil diupdate!";
+  message.style.display = "block";
+  
+  // Refresh tampilan history
+  displayHistory();
+  // Kosongkan input
+  document.getElementById("orderCodeInput").value = "";
+  document.getElementById("verifyCodeInput").value = "";
+}
+
+// FUNGSI TAMPILKAN CARA PEMBAYARAN
+document.getElementById("tampilkanPembayaran").addEventListener("click", function() {
+  if (!selected) {
+    alert("Pilih item dulu cuy!");
+    return;
+  }
+
+  // Cek validasi input dulu
+  if(!validasiInput()){
+    return;
+  }
+
+  const totalHarga = document.getElementById("totalHarga").textContent;
+  const hargaNominal = toNumber(totalHarga);
+  const metode = document.getElementById("payment").value;
+  const produkNama = gameFullNames[game] || game;
+  const keterangan = `${produkNama} - ${selected}`;
+
+  // Tampilkan elemen yang dibutuhkan
+  const containerBayar = document.getElementById("linkBayarContainer");
+  const btnKirimWA = document.getElementById("kirimKeWA");
+  const qrisImg = document.getElementById("qrisImg");
+  const qrisNote = document.getElementById("qrisNote");
+  
+containerBayar.innerHTML = `<p style="font-weight:bold; font-size:17px; margin:0; text-align:center;">✅ Cara Pembayaran Sudah Siap!</p>`;
+
+
+  containerBayar.style.display = "block";
+  btnKirimWA.style.display = "block";
+  this.style.display = "none";
+  qrisImg.style.display = "none";
+
+  // Isi konten sesuai metode pembayaran
+  if (["DANA", "GOPAY", "OVO"].includes(metode)) {
+  const data = rekeningPembayaran[metode];
+
+  containerBayar.innerHTML += `
+    <p style="margin:5px 0;">Metode Bayar: <b>${metode}</b></p>
+    <p style="margin:5px 0;">No Rekening: <b>${data.nomor}</b></p>
+    <p style="margin:5px 0;">Total Bayar: <b>${totalHarga}</b></p>
+    <p style="background:#2c3e50; color:white; padding:10px; border-radius:5px; margin:10px 0; text-align:center;">
+      📌 Transfer ke nomor ${metode} di atas dengan total bayar <b>${totalHarga}</b>
+    </p>
+    <p style="color:#ffcc00; font-weight:bold; margin-top:5px;">💡 Setelah bayar, kirimkan bukti pembayaran ke admin melalui WA!</p>
+  `;
+} else if (metode === "QRIS") {
+  // Bersihkan kontainer dulu biar tidak menumpuk saat ganti metode
+  containerBayar.innerHTML = "";
+  
+  containerBayar.innerHTML = `
+    <p style="margin:5px 0; text-align:center;">📌 METODE PEMBAYARAN: <b>QRIS</b></p>
+    <p style="margin:5px 0; text-align:center;">Total yang harus dibayar: <b>${totalHarga}</b></p>
+    <p style="background:#2c3e50; color:white; padding:10px; border-radius:5px; margin:10px 0; text-align:center;">
+      ✅ Scan QRIS di bawah ini untuk melakukan pembayaran
+    </p>
+    <p style="text-align:center; margin:5px 0;">💡 Isi nominal sesuai total bayar ya!</p>
+    <!-- Hanya satu gambar QRIS di sini -->
+    <img src="" alt="QRIS Pembayaran" style="width:250px; height:auto; margin:10px auto; display:block; border:2px solid #fff; border-radius:15px;">
+    <p style="color:#ffcc00; font-weight:bold; text-align:center;">💡 Qris sedang bermasalah.minta qris sama admin nya yah</p>
+  `;
+  containerBayar.style.display = "block";
+}
+
+
+
+
+
+});
+
+// FUNGSI TUTUP CARA PEMBAYARAN
+document.getElementById("tutupBayar").addEventListener("click", function() {
+  const containerBayar = document.getElementById("linkBayarContainer");
+  const btnTampilkan = document.getElementById("tampilkanPembayaran");
+  const btnKirimWA = document.getElementById("kirimKeWA");
+  const qrisImg = document.getElementById("qrisImg");
+
+  // Reset tampilan pembayaran
+  containerBayar.style.display = "none";
+  containerBayar.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <p style="font-weight:bold; font-size:17px; margin:0;">✅ Cara Pembayaran Sudah Siap!</p>
+                                <button id="tutupBayar" style="background:#dc2626; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">
+                                  ❌ Tutup
+                                </button>
+                              </div>`;
+  btnTampilkan.style.display = "block";
+  btnKirimWA.style.display = "none";
+  if(qrisImg) qrisImg.style.display = "none";
+
+  // Pasang lagi event listener tombol tutup
+  document.getElementById("tutupBayar").addEventListener("click", this.onclick);
+});
+
+// FUNGSI RESET SEMUA TAMPILAN PEMBAYARAN
+function resetPembayaranDisplay() {
+  const containerBayar = document.getElementById("linkBayarContainer");
+  const btnTampilkan = document.getElementById("tampilkanPembayaran");
+  const btnKirimWA = document.getElementById("kirimKeWA");
+  const qrisImg = document.getElementById("qrisImg");
+
+  if(containerBayar) containerBayar.style.display = "none";
+  if(btnTampilkan) btnTampilkan.style.display = "block";
+  if(btnKirimWA) btnKirimWA.style.display = "none";
+  if(qrisImg) qrisImg.style.display = "none";
+}
+
+// ======================
+// EVENT LISTENER GANTI METODE PEMBAYARAN LANGSUNG
+// ======================
+document.getElementById("payment").addEventListener("change", function() {
+  // Cek dulu apakah sudah ada item yang dipilih dan input valid
+  if (!selected) {
+    alert("⚠ Pilih item terlebih dahulu ya!");
+    return;
+  }
+  if(!validasiInput()){
+    return;
+  }
+
+  const metodeBaru = this.value;
+  const totalHarga = document.getElementById("totalHarga").textContent;
+  const containerBayar = document.getElementById("linkBayarContainer");
+
+  // Bersihkan tampilan lama
+  containerBayar.innerHTML = `<p style="font-weight:bold; font-size:17px; margin:0; text-align:center;">✅ Cara Pembayaran Sudah Siap!</p>`;
+
+  // Tampilkan sesuai metode baru
+  if (["DANA", "GOPAY", "OVO"].includes(metodeBaru)) {
+    const data = rekeningPembayaran[metodeBaru];
+    containerBayar.innerHTML += `
+      <p>Metode Bayar: <b>${metodeBaru}</b></p>
+      <p>No Rekening: <b>${data.nomor}</b></p>
+      <p>Total Bayar: <b>${totalHarga}</b></p>
+      <p style="background:#2c3e50; color:white; padding:10px; border-radius:5px;">📌 Transfer sesuai nominal ya!</p>
+    `;
+  } else if (metodeBaru === "QRIS") {
+  containerBayar.innerHTML += `
+    <p>Metode Bayar: <b>QRIS</b></p>
+    <p>Total Bayar: <b>${totalHarga}</b></p>
+    <img src="" alt="QRIS" style="width:250px; margin:10px auto; display:block; border:2px solid #fff; border-radius:15px;"> <!-- Tambah border-radius dan border -->
+    <p style="color:#ffcc00; font-weight:bold;">💡 qris sedang bermasalah.minta qris ama admin yah</p>
+  `;
+}
+
+
+  // Tampilkan kontainer pembayaran
+  containerBayar.style.display = "block";
+  document.getElementById("tampilkanPembayaran").style.display = "none";
+  document.getElementById("kirimKeWA").style.display = "block";
+});
+
+
+
+// FUNGSI KIRIM DETAIL KE WA ADMIN
+document.getElementById("kirimKeWA").addEventListener("click", function() {
+  // CEK WAKTU OPERASIONAL
+  const now = new Date();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const isClosed = (hour < 9) || (hour > 22) || (hour === 22 && minute > 00);
+
+  
+  if(isClosed){
+    const closedNotif = document.getElementById("closedNotification");
+    closedNotif.style.display = "block";
+    setTimeout(() => closedNotif.style.display = "none", 5000);
+    return;
+  }
+
+  let user = document.getElementById("userId").value;
+  let server = "-";
+  if (game === "gi") {
+    server = document.getElementById("genshinServer").value;
+  } else {
+    server = document.getElementById("serverId").value || "-";
+  }
+  let pay = document.getElementById("payment").value;
+  let totalHarga = document.getElementById("totalHarga").textContent;
+
+  // Simpan data pesanan ke localStorage
+  const orderData = {
+    game: gameFullNames[game] || game,
+    item: selected,
+    total: totalHarga,
+    userId: user,
+    server: server,
+    payment: pay
+  };
+  const orderCode = createOrderCode();
+  orderData.orderCode = orderCode;
+  orderData.status = "Menunggu Pembayaran";
+  orderData.verifyCode = "BELUM ADA";
+  
+  let history = JSON.parse(localStorage.getItem("sullstoreHistory")) || [];
+  history.unshift(orderData);
+  localStorage.setItem("sullstoreHistory", JSON.stringify(history));
+  showNotification();
+  displayHistory();
+
+  // Pesan WA untuk admin
+  let pesan = `🛒 *ORDER SULLSTORE*
+🎮 Game / App : ${gameFullNames[game] || game}
+💎 Item : ${selected}
+💵 Total Bayar : ${totalHarga}
+
+🆔 user/username : ${user}
+🌐 Server : ${server || "-"}
+💳 Payment : ${pay}
+
+🔑 Kode Pesanan : ${orderCode}
+
+💡 Catatan: Sudah melakukan pembayaran, segera kirimkan bukti pembayaran ya! Mohon segera proses 🙏`;
+
+  window.open("https://wa.me/6282162249291?text="+encodeURIComponent(pesan));
+});
+
+
+
+// Back
+function back(){
+  resetPembayaranDisplay();
+  
+  document.getElementById("produk").classList.add("hidden");
+  document.getElementById("home").style.display="block";
+  
+  if(lastTab==="topup"){ 
+    loadHomeGames(); 
+  } else if(lastTab==="edit"){
+    const list=document.getElementById("homeGameList");
+    list.innerHTML="";
+    Object.keys(editing).forEach(key=>{ 
+      list.innerHTML+=`<div class="game-image-card" onclick="openEditing('${key}')">
+                        <img src="${editingImages[key]}" alt="${key}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
+                        <span>${key}</span>
+                      </div>`; 
+    });
+  } else if(lastTab==="voucher"){
+    const list=document.getElementById("homeGameList");
+    list.innerHTML="";
+    Object.keys(voucher).forEach(key=>{ 
+      list.innerHTML+=`<div class="game-image-card" onclick="openVoucher('${key}')">
+                        <img src="${voucherImages[key]}" alt="${key}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
+                        <span>${key}</span>
+                      </div>`; 
+    });
+  }
+}
+
+
+
+
+// FUNGSI BUKA/TUTUP MENU SAMPING
+function toggleSideMenu() {
+  const sideMenu = document.getElementById("sideMenu");
+  const menuOverlay = document.getElementById("menuOverlay");
+  sideMenu.classList.toggle("active");
+  menuOverlay.classList.toggle("active");
+}
+
+function openWA() {
+  // Ganti nomor WA dengan nomor admin kamu (tanpa awalan 0, pakai kode negara 62)
+  const nomorAdmin = "6282162249291"; 
+  // Pesan awal yang akan muncul di chat
+  const pesanAwal = "Halo Admin SULLSTORE! Mau tanya nih tentang...";
+  
+  // Buka link WA langsung di browser atau aplikasi WA
+  window.open(`https://wa.me/${nomorAdmin}?text=${encodeURIComponent(pesanAwal)}`, '_blank');
+  
+  // Tutup menu samping setelah diklik
+  toggleSideMenu();
+}
+
+
+// FUNGSI KEMBALI KE HALAMAN TOPUP DARI MENU
+function openTopupFromMenu() {
+  document.getElementById("produk").classList.add("hidden");
+  document.getElementById("home").style.display = "block";
+  tab("topup");
+  toggleSideMenu(); // Tutup menu setelah diklik
+}
+
+
+// Toggle lihat selengkapnya
+function toggleGame(){
+  const list=document.querySelector(".game-list");
+  const btn=document.getElementById("lihatBtn");
+  list.classList.toggle("show");
+  btn.innerText = list.classList.contains("show")?"Tutup":"Lihat Selengkapnya";
+}
+
+// Fungsi tab yang bisa digeser + indikator
+function selectTab(el, t) {
+  lastTab = t;
+  // Reset semua tab
+  const allTabs = document.querySelectorAll(".tab");
+  allTabs.forEach(tab => tab.classList.remove("active"));
+  // Set tab yang diklik jadi aktif
+  el.classList.add("active");
+  
+  // Atur posisi dan lebar indikator
+  const indicator = document.getElementById("tabIndicator");
+  indicator.style.width = el.offsetWidth + "px";
+  indicator.style.left = el.offsetLeft + "px";
+  
+  // Tampilkan konten sesuai tab
+  if(t==="topup"){ 
+    loadHomeGames(); 
+    document.getElementById("home").style.display="block"; 
+  } else if(t==="edit"){
+   const list=document.getElementById("homeGameList");
+   list.innerHTML="";
+   Object.keys(editing).forEach(key=>{ 
+     list.innerHTML+=`<div class="game-image-card" onclick="openEditing('${key}')">
+                       <img src="${editingImages[key]}" alt="${key}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
+                       <span>${key}</span>
+                     </div>`; 
+   });
+   document.getElementById("home").style.display="block";
+ } else if(t==="voucher"){
+   const list=document.getElementById("homeGameList");
+   list.innerHTML="";
+   Object.keys(voucher).forEach(key=>{ 
+     list.innerHTML+=`<div class="game-image-card" onclick="openVoucher('${key}')">
+                       <img src="${voucherImages[key]}" alt="${key}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
+                       <span>${key}</span>
+                     </div>`; 
+   });
+   document.getElementById("home").style.display="block";
+ }
+  // Tambah kondisi kalo ada tab baru, contoh:
+  // else if(t==="jasa"){ ... }
+  
+  document.getElementById("produk").classList.add("hidden");
+  document.getElementById("expandedSearchInput").value = "";
+ // Reset kolom pencarian dan tampilan
+document.getElementById("expandedSearchInput").value = "";
+document.getElementById("searchBarContainer").style.display = "none";
+document.getElementById("searchToggleBtn").innerHTML = "";
+searchGame();
+
+}
+
+
+
+// FUNGSI BUKA/TUTUP KOLOM PENCARIAN + UBAH TOMBOL
+function toggleSearchBar() {
+   const searchContainer = document.getElementById("searchBarContainer");
+   const expandedInput = document.getElementById("expandedSearchInput");
+   const searchBtn = document.getElementById("searchToggleBtn");
+   
+   // Cek apakah kolom pencarian sedang tersembunyi
+   if (searchContainer.style.display === "none" || searchContainer.style.display === "") {
+     searchContainer.style.display = "flex";
+     expandedInput.focus();
+     // Ubah jadi tombol X
+     searchBtn.innerHTML = "<span style='font-size:20px;'>✖</span>";
+   } else {
+     searchContainer.style.display = "none";
+     expandedInput.value = "";
+     searchGame();
+     // Kembalikan jadi gambar search
+     searchBtn.innerHTML = "<img src='search2.png' alt='Cari' class='search-icon-img'>";
+   }
+ }
+
+
+// FUNGSI PENCARIAN GAME/LAYANAN
+function searchGame() {
+  const filter = document.getElementById("expandedSearchInput").value.toLowerCase().trim();
+  const currentTab = lastTab; // Ambil tab yang sedang aktif
+
+  if (currentTab === "topup") {
+    // Pencarian untuk tab Topup Game
+    const gameCards = document.querySelectorAll(".game-image-card");
+    gameCards.forEach(card => {
+      const text = card.querySelector("span").innerText.toLowerCase();
+      card.style.display = text.includes(filter) ? "block" : "none";
+    });
+  } else if (currentTab === "edit") {
+    // Pencarian untuk tab Editing Prem
+    const editCards = document.querySelectorAll(".game-card");
+    editCards.forEach(card => {
+      const text = card.innerText.toLowerCase();
+      card.style.display = text.includes(filter) ? "block" : "none";
+    });
+  } else if (currentTab === "voucher") {
+    // Pencarian untuk tab Voucher
+    const voucherCards = document.querySelectorAll(".game-card");
+    voucherCards.forEach(card => {
+      const text = card.innerText.toLowerCase();
+      card.style.display = text.includes(filter) ? "block" : "none";
+    });
+  }
+}
+
+
+
+
+// Load awal
+window.onload = function() {
+  loadHomeGames();
+  displayHistory();
+  document.getElementById("genshinServerContainer").classList.add("hidden");
+  
+  // Event untuk pencarian history
+  document.getElementById("searchHistoryInput").addEventListener("input", searchHistory);
+  
+  // Set posisi indikator ke tab pertama yang aktif
+   const firstTab = document.querySelector(".tab.active");
+   const indicator = document.getElementById("tabIndicator");
+   indicator.style.width = firstTab.offsetWidth + "px";
+   indicator.style.left = firstTab.offsetLeft + "px";
+ };
+ 
+// SLIDER BANNER OTOMATIS
+let currentSlide = 0;
+const slides = document.querySelectorAll('.banner-slide');
+const indicators = document.querySelectorAll('.indicator');
+const slideInterval = 4500; // Waktu pergantian banner (dalam milidetik, 5000 = 5 detik)
+
+// Fungsi untuk berpindah ke slide tertentu
+function goToSlide(n) {
+  slides[currentSlide].classList.remove('active');
+  indicators[currentSlide].classList.remove('active');
+  currentSlide = (n + slides.length) % slides.length;
+  slides[currentSlide].classList.add('active');
+  indicators[currentSlide].classList.add('active');
+}
+
+// Fungsi untuk slide berikutnya
+function nextSlide() {
+  goToSlide(currentSlide + 1);
+}
+
+// Jalankan slider otomatis
+let slideTimer = setInterval(nextSlide, slideInterval);
+
+// Hentikan slider sementara saat mengklik indikator
+indicators.forEach(ind => {
+  ind.addEventListener('click', () => {
+    clearInterval(slideTimer);
+    slideTimer = setInterval(nextSlide, slideInterval);
+  });
+});
+
+
+
+
+</script>
+<!-- AWAL FOOTER -->
+<footer style="background-color: #1a032b; color: white; padding: 20px 15px; margin-top: 30px; border-top: 3px solid #7c3aed;">
+  <!-- Bagian Logo & Deskripsi -->
+  <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #3b0764;">
+    <h2 style="font-size: 24px; margin: 0; display: flex; align-items: center;">
+      <!-- Ganti dengan logo kamu ya -->
+      <span style="font-weight: bold; color: #fcd34d;">SULL</span><span>STORE</span>
+    </h2>
+    <p style="font-size: 14px; line-height: 1.5; margin-top: 10px; color: #d1d5db;">
+      Top Up Game Favoritmu dengan Harga Murah & Proses Cepat di SULLSTORE! Tersedia Berbagai Macam Game, Item, & Layanan yang Bisa Kamu Pilih. Layanan CS Ramah, Proses Aman, & Pastinya Terjangkau.
+    </p>
+  </div>
+
+  <!-- Bagian Menu Footer -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+    <div>
+      <h3 style="font-size: 16px; margin-top: 0; color: #fcd34d;">Halaman</h3>
+  <ul style="list-style: none; padding: 0; margin: 0;">
+    <li style="margin: 8px 0;"><a href="index.html" style="color: #d1d5db; text-decoration: none;">Halaman Utama</a></li>
+    <li style="margin: 8px 0;"><a href="#" onclick="openOrderHistoryModal()" style="color: #d1d5db; text-decoration: none;">Cek Pesanan</a></li>
+    <li style="margin: 8px 0;"><a href="tentang-kami.html" style="color: #d1d5db; text-decoration: none;">Tentang Kami</a></li>
+  </ul>
+</div>
+    <div>
+      <h3 style="font-size: 16px; margin-top: 0; color: #fcd34d;">Informasi & Lainnya</h3>
+  <ul style="list-style: none; padding: 0; margin: 0;">
+    <li style="margin: 8px 0;"><a href="syarat-ketentuan.html" style="color: #d1d5db; text-decoration: none;">Syarat & Ketentuan</a></li>
+    <li style="margin: 8px 0;"><a href="kebijakan-privasi.html" style="color: #d1d5db; text-decoration: none;">Kebijakan Privasi</a></li>
+    <li style="margin: 8px 0;"><a href="faq.html" style="color: #d1d5db; text-decoration: none;">FAQ</a></li>
+  </ul>
+</div>
+  </div>
+
+  <!-- Bagian Kontak -->
+  <div style="padding-top: 15px; border-top: 1px solid #3b0764;">
+    <h3 style="font-size: 16px; margin-top: 0; color: #fcd34d;">Kontak</h3>
+    <p style="margin: 5px 0; display: flex; align-items: center; color: #d1d5db;">
+      📧 sullstore@gmail.com
+    </p>
+    
+    <div style="margin-top: 15px;">
+     <h3 style="font-size: 16px; color: #fcd34d;">Ikuti Kami</h3>
+     <div style="display: flex; gap: 15px; margin-top: 10px; align-items: center;">
+       <!-- WhatsApp -->
+       <a href="https://wa.me/6282162249291" target="_blank" style="display: inline-block;">
+         <img src="whatsapp.png" 
+              alt="WhatsApp" style="width: 40px; height: 40px; object-fit: contain;">
+       </a>
+       <!-- Instagram -->
+       <a href="https://www.instagram.com/sullstore.id?igsh=MXJ4YncwN2U1bDI0ag==" target="_blank" style="display: inline-block;">
+         <img src="instagram.png" 
+              alt="Instagram" style="width: 60px; height: 60px; object-fit: contain;">
+       </a>
+       <!-- TikTok -->
+       <a href="https://www.tiktok.com/@sullofficial.id?_r=1&_t=ZS-94gJctNUAok" target="_blank" style="display: inline-block;">
+         <img src="tiktok.png" 
+              alt="TikTok" style="width: 60px; height: 60px; object-fit: contain;">
+       </a>
+     </div>
+   </div>
+    <!-- AWAL BAGIAN PEMBAYARAN -->
+<div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #3b0764;">
+  <h3 style="font-size: 16px; margin-top: 0; color: #fcd34d; text-align: center;">METODE PEMBAYARAN</h3>
+  <p style="font-size: 14px; color: #d1d5db; text-align: center; margin: 10px 0;">Pembayaran Aman & Mudah</p>
+  
+  <!-- Ikon Pembayaran -->
+  <div style="display: flex; justify-content: center; gap: 25px; align-items: center; padding: 10px 0;">
+    <!-- DANA -->
+    <img src="dana.png" 
+         alt="DANA" style="width: 80px; height: 80px; object-fit: contain;">
+    
+    <!-- GOPAY -->
+    <img src="gopay.png" 
+         alt="GoPay" style="width: 80px; height: 80px; object-fit: contain;">
+    
+    <!-- OVO -->
+    <img src="ovo.png" 
+         alt="OVO" style="width: 80px; height: 80px; object-fit: contain;">
+    
+    <!-- QRIS -->
+    <img src="fotoqris.png" 
+         alt="QRIS" style="width: 80px; height: 80px; object-fit: contain;">
+  </div>
+</div>
+<!-- AKHIR BAGIAN PEMBAYARAN -->
+
+    <p style="margin-top: 15px; font-size: 12px; text-align: center; color: #9ca3af;">
+      SULLSTORE - Layanan Top Up Game Murah & Cepat | Dalam Tahap Pengembangan
+    </p>
+  </div>
+</footer>
+<!-- AKHIR FOOTER -->
+
+</body>
+</html>
+
+
