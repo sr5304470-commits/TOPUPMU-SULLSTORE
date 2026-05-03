@@ -1,0 +1,25 @@
+{
+  "name": "SULLSTORE - Top Up Game",
+  "short_name": "SULLSTORE",
+  "description": "SULLSTORE - Top Up Game Murah, Cepat, dan Aman",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a032b",
+  "theme_color": "#6d28d9",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
